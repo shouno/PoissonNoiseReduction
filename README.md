@@ -20,11 +20,15 @@ The implementation language is R with several libraries, "Matrix", "png".
 When you start on the R, set working directory to the repositry directory,
 and you can run with
 
-> source( 'Poisson2D13.R' )
+  > source( 'Poisson2D13.R' )
 
 If you'd like to use with command-line of several shells, please type
 
-$ R --vanilla < Poisson2D13.R
+  $ R --vanilla < Poisson2D13.R
+
+In the running, you can see the trial number, minimum and maximum Poisson parameters (contrast),
+prior parameters alpha and h, and optmizing values in the cosole.
+
 
 After running, you can obtain several result files such like "Pois2D13_02_20_01.RData"
 The numbers in the filename mean "Pois2D13_[min]_[max]_[trial].RData". 
