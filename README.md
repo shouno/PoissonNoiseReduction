@@ -4,10 +4,14 @@ PoissonNoiseReduction
 Poisson Noise Reduction example
 
 This sample program is presented at the PDPTA 2013.
-"Poisson Observed Image Restoration using a Latent Variational Approximation with Gaussian MRF"
-H.Shouno and M.Okada
+
+  "Poisson Observed Image Restoration using a Latent Variational Approximation with Gaussian MRF"
+  H.Shouno and M.Okada
+
 The presentation slides can see at
-http://www.slideshare.net/HAL9801/slideshelf
+
+  http://www.slideshare.net/HAL9801/slideshelf
+
 In this sample, prior implementation is just different from the proceeding.
 The priro shown in the slide is correct implementation.
 
