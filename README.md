@@ -3,10 +3,13 @@ PoissonNoiseReduction
 
 Poisson Noise Reduction example
 
-This sample program is presented at the PDPTA 2013.
+This sample program is presented at the PDPTA 2013 and PDPTA 2014
 
   "Poisson Observed Image Restoration using a Latent Variational Approximation with Gaussian MRF"
   H.Shouno and M.Okada
+
+  "Accelaration of Poisson Corrupted Image Restoration with Loopy Belief Propagation"
+  H.Shouno
 
 The presentation slides can see at
 
@@ -16,15 +19,26 @@ In this sample, prior implementation is just different from the proceeding.
 The priro shown in the slide is correct implementation.
 
 The implementation language is R with several libraries, "Matrix", "png".
-"MyPoisson2D.R" is my local library source.
+"MyPoisson2D.R" and "MyLBP.R" is my local library source.
 When you start on the R, set working directory to the repositry directory,
 and you can run with
 
-  > source( 'Poisson2D13.R' )
+  source( 'Poisson2D13.R' )
+
+if you'd like to apply original EM base program.
+
+  source( 'Poisson2DLBP3.R' )
+
+means LBP approximated version, which is faster than the original one.
+
 
 If you'd like to use with command-line of several shells, please type
 
   $ R --vanilla < Poisson2D13.R
+
+or
+
+  $ R --vanilla < Poisson2DLBP3.R
 
 In the running, you can see the trial number, minimum and maximum Poisson parameters (contrast),
 prior parameters alpha and h, and optmizing values in the cosole.
