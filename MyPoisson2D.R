@@ -1,10 +1,42 @@
 #
-# 20130305: Atidlde は ~/Documents/DOCs/TeX/TVBayes/Rproj/MyLWD2D.R から
+# 20130305: Sparse Matrix Version
 #
 
 
 Trace <- function( mat ){ # mat should be a square matrix 
   return( sum( diag( mat ) ) )
+}
+
+PSNR <- function( ref, tst ){
+    mse <- mean( (tst-ref)**2 )
+    rng2 <- (max(ref) - min(ref))**2
+    return ( 10 * log(rng2/mse, base=10) )
+}
+
+logit <- function( u ){
+    return( 0.5 * log(u/(1-u)) )
+}
+
+ilogit <- function( x ){
+    return( exp(x)/(exp(x)+exp(-x)) )
+}
+
+dlogit <- function( u ){
+    return( 0.5 * 1/(u*(1-u)) )
+}
+
+dilogit <- function( x ){
+    return( 2 / ( (exp(x)+exp(-x))**2 ) )
+}
+
+
+NBinom2D <- function( nn, lmdmat, Ksamples=10000 ){
+  Ly <- nrow(lmdmat)
+  Lx <- ncol(lmdmat)
+  LL <- Lx*Ly
+  gennum <- rbinom( n = nn * LL, K, lmdmat/K )
+  PData <- aperm( array( gennum, dim=c(Lx, Ly, nn) ), perm=c(1,2,3) )
+  return( PData )
 }
 
 
@@ -21,20 +53,33 @@ Trace <- function( mat ){ # mat should be a square matrix
 #}
 
 
-MyLambda <- function( Lx, Ly ){
-  Ah <- rep( 1, Ly*(Lx-1) )
-  Av <- rep( 1, (Ly-1)*Lx )
-  return( Atilde.csr( Ah, Av, Ly, Lx ) )
+MyLambda <- function( Lx, Ly, h=1, v=1 ){
+    Ah <- h
+    if( length(Ah) == 1 ){
+        Ah <- rep( Ah, Ly*(Lx-1) )
+    }
+    if( length(Ah) != Ly*(Lx-1) ){
+        stop( 'num. of horiz. components is wrong' )
+    }
+    
+    Av <- v
+    if( length(Av) == 1 ){
+        Av <- rep( 1, (Ly-1)*Lx )
+    }
+    if( length(Av) != (Ly-1)*Lx ){
+        stop( 'num. of vert. components is wrong' )
+    }
+    return( Atilde.csr( Ah, Av, Ly, Lx ) )
 }
 
 
 
 #
-# 隣接要素の行列を生成
-# Ah は，横方向のボンドに張り付いた変数
-# Av は，縦方向のボンドに張り付いた変数
-# Prow は画像の横サイズ
-# Pcol は画像の縦サイズ
+# Generate Adjacent Matrix
+# Ah means graph weigths corresponding to the horizontal connection.
+# Av means graph weigths corresponding to the vertical connections.
+# Prow means horizontal size of image matrix
+# Pcol means vertical size of image matrix
 #
 Atilde <- function( Ah, Av, Prow, Pcol ){
   sdiag1 <- array( rbind( matrix( Av, nrow=Prow-1 ), rep(0, Pcol) ))[1:(Prow*Pcol-1)]

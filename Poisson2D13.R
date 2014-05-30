@@ -185,6 +185,8 @@ minimg <- min( img )
 
 rngs <- c( 20, 40, 80, 160 )
 #rngs <- c( 20, 80, 160 )
+#rngs <- c( 20 )
+
 
 minoff <- 2
 
