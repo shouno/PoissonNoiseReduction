@@ -9,7 +9,7 @@
 #           最適化が大暴れするので Nelder-Mead 法であたりをつけてから CG で，再最適化
 # 20130713: ログ取れるように関数化しておく
 # 20130714: 実画像で遊べる？
-
+# 20141021: 平均値モデル
 
 library( Matrix )    # 疎行列パッケージを導入
 library( png )
@@ -59,7 +59,8 @@ Trial <- function( filename, lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
     obsmat <- NBinom2D( N, lmdmat, Ksamples=K ) 
     obsmat <- Matrix( obsmat, nrow=Lx*Ly, ncol=N )
     obsmean <- rowMeans( obsmat )
-
+    lmd0 <- mean( obsmat )
+    
     rhomat <- lmdmat/K
     xtrue <- logit( rhomat )
 
@@ -72,15 +73,15 @@ Trial <- function( filename, lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
     eigvals <- Lmdeigs$values
 
     xi <- rep( 0, M )
-    alpha <- 1.0
-    h <- 1.0
+    alpha <- 1e-2
+    h <- 1e-2
     lnA <- log(alpha)
     lnH <- log(h)
-    rhoinit <- mean(obsmean)/K
+    rho0 <- lmd0/K
     for(t in 1:ITmax) {
         Tht <- Diagonal( x = Coef1( xi ) * K )
         C1 <- solve( Tht + alpha * Lmd + h * Eye )
-        mnew <- C1 %*% zz
+        mnew <- C1 %*% (zz + h * rho0)
 
         AA <- sum( diag( Lmd %*% C1 ) )+ as.numeric(t(mnew) %*% Lmd %*% mnew)
         BB <- sum( diag( C1 ) ) + sum(mnew ** 2)

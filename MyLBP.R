@@ -38,14 +38,14 @@ MyLambda2D <- function( Ly, Lx ){ # See preliminary result by Lmd.R if you have 
 }
 
 
-InferX2D <- function( Ly, Lx, N, talpha, tbeta, th, alpha, beta, h ){
+InferX2D <- function( Ly, Lx, N, talpha, tbeta, th, alpha, beta, h, x0=0 ){
   M <- Lx*Ly
   Lmd <- MyLambda2D( Ly, Lx )
   Eye <- diag( rep( 1, M ) )
 #
                                         # 多次元ガウス分布の真のパラメータ
   tC1 <- talpha * Lmd + th * Eye
-  tm1 <- rep(0, M)
+  tm1 <- rep(x0, M)
 #
   x <- matrix( mvrnorm( N, tm1, solve(tC1) ), nrow=N )
   obsrnd <- matrix( rnorm( n=N*M, mean=0, sd=sqrt( 1/tbeta ) ), nrow=N )
@@ -53,7 +53,7 @@ InferX2D <- function( Ly, Lx, N, talpha, tbeta, th, alpha, beta, h ){
 #
   S <- alpha * Lmd + (beta+h) * Eye
   Sinv <- solve(S)
-  return( list( x = x, y = y, mu = beta * y %*% Sinv, S = S ) )
+  return( list( x = x, y = y, mu = (beta*y + h*x0) %*% Sinv, S = S ) )
 }
 
 
@@ -86,7 +86,7 @@ ShiftMat <- function( src, sft ){
 }
 
 
-LoopyBP2D <- function( Lx, Ly, alpha, beta, h, y, ITmax=1000 ){
+LoopyBP2D <- function( Lx, Ly, alpha, beta, h, y, x0=0, ITmax=1000, tol=1e-9 ){
     ### Caclulate 2D-GMRF Belief Prop
     # params (Ly, Lx) input matrix size
     # alpha, beta, h, hyper-parameters
@@ -95,9 +95,11 @@ LoopyBP2D <- function( Lx, Ly, alpha, beta, h, y, ITmax=1000 ){
     # Detail is in study memo around 20140327
     #
 
-    # shift origin.
-    ymean <- mean( y )
-    y <- y - ymean
+    # Modified including average x0~ mean(y)
+
+    # shift origin. depricated for averaged model
+    # ymean <- mean( y )
+    # y <- y - ymean
 
 
     dirs <- 4
@@ -133,7 +135,7 @@ LoopyBP2D <- function( Lx, Ly, alpha, beta, h, y, ITmax=1000 ){
             insum1 <- rowSums( sumMsg1[,-od] )
             insum2 <- rowSums( msgs$gam[,-od] )
 
-            tmean <- (beta * y + insum1) / (beta + h + insum2)
+            tmean <- (beta * y + h * x0 + insum1) / (beta + h + insum2)
             tinvar <- inva[,d] + 1/(beta + h + insum2)
 #            tinvar <- 1/alpha + 1/(beta + h + insum2)
             tinvar <- 1/tinvar
@@ -147,17 +149,17 @@ LoopyBP2D <- function( Lx, Ly, alpha, beta, h, y, ITmax=1000 ){
         outsum1 <- rowSums( sumMsg1 )
         outsum2 <- rowSums( msgs$gam )
         sgm2 <- 1/(beta + h + outsum2)
-        mu <- (beta * y + outsum1) * sgm2
+        mu <- (beta * y + h * x0 + outsum1) * sgm2
 
         err <- mean( abs(lbpx-mu)/sum(abs(mu)) )
-        if( err < 1e-9 )	break
+        if( err < tol )	break
 
         lbpx <- mu
     }
 
     # revert shift origin
-    mu <- mu + ymean
-    msgs$mu <- msgs$mu + ymean
+    # mu <- mu + ymean
+    # msgs$mu <- msgs$mu + ymean
 
     ret <- list( mu, sgm2, msgs, t )
     names( ret ) <- c( 'mu', 'sigma2', 'message', 't' )

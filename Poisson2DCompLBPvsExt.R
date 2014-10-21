@@ -1,6 +1,7 @@
 #
 # 20140325: Loopy BP Accelaration
 # 20140406: Compare with Exact EM solution
+# 20141021: include average model
 #
 
 library( Matrix ) # Sparse matrix package for exact solution
@@ -28,7 +29,8 @@ Trial <- function( lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
     obsmat <- NBinom2D( N, lmdmat, Ksamples=K ) 
     obsmat <- matrix( obsmat, nrow=Lx*Ly, ncol=N )
     obsmean <- rowMeans( obsmat )
-
+    lmd0 <- mean( obsmat )
+    
     rhomat <- lmdmat/K
     xtrue <- logit( rhomat )
 
@@ -37,15 +39,15 @@ Trial <- function( lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
     zz <- as.vector(2 * obsmean - K)
 
     lbpxi <- rep( 0, M )
-    lbpalpha0 <- 1.0
+    lbpalpha0 <- 1e-3
     h <- 1.0e-5        # treating as fixed value
 
-    rhoinit <- mean(obsmean)/K
-    lbpmuold <- rep( logit(rhoinit), M )
-    lbpmuold0 <- rep( logit(rhoinit), M )
+    rho0 <- lmd0/K
+    lbpmuold <- rep( logit(rho0), M )
+    lbpmuold0 <- rep( logit(rho0), M )
 
-    extmu <- rep( logit(rhoinit), M )
-    extmuold <- rep( logit(rhoinit), M )
+    extmu <- rep( logit(rho0), M )
+    extmuold <- rep( logit(rho0), M )
     extxi <- rep( 0, M )
     extalpha0 <- 1.0
 #    browser()
@@ -64,7 +66,7 @@ Trial <- function( lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
         exttime <- proc.time()
         Tht <- Diagonal( x = Coef1(extxi) * K )
         C1 <- solve( Tht + extalpha0 * extLmd + h * extEye )
-        extmu <- C1 %*% zz
+        extmu <- C1 %*% (zz + h * rho0)
         extalphainv <- sum( diag(extLmd %*% C1) ) + as.numeric( t(extmu) %*% extLmd %*% extmu )
         extalphainv <- as.numeric( extalphainv/(M-1) )
         extxi <- as.array( sqrt( diag(C1) + extmu**2 ) )
@@ -85,7 +87,7 @@ Trial <- function( lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
         beta <- K * Coef1( lbpxi )
         y <- zz / beta
 
-        lbp <- LoopyBP2D( Lx, Ly, alpha, beta, h, y, ITmax=1000 )
+        lbp <- LoopyBP2D( Lx, Ly, alpha, beta, h, y, x0=rho0, ITmax=1000 )
 
         lbpmu <- as.numeric( lbp$mu )
         Sinv <- as.numeric( lbp$sigma2 )
@@ -169,20 +171,20 @@ Trial <- function( lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
 #xoff <- 80
 #yoff <- 10
 #
-#Lx <- 64
-#Ly <- 64
-#xoff <- 72
-#yoff <- 0
+Lx <- 64
+Ly <- 64
+xoff <- 72
+yoff <- 0
 #
 #Lx <- 80
 #Ly <- 80
 #xoff <- 64
 #yoff <- 0
 
-Lx <- 96
-Ly <- 96
-xoff <- 48
-yoff <- 0
+#Lx <- 96
+#Ly <- 96
+#xoff <- 48
+#yoff <- 0
 
 
 #

@@ -12,7 +12,8 @@
 # 20140325: Loopy BP による高速化
 # 20140328: BP の実装変化にともなう変更＋αの取り扱い変更
 # 20140329: LBP 使うなら疎行列いらなくね？
-
+# 20141021: 平均値バージョンを追加しておく
+#
 library( png )
 library( fields )
 library( gplots )
@@ -32,11 +33,12 @@ Coef1 <- function( x ){
 Trial <- function( filename, lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
     Lx <- ncol( lmdmat );
     Ly <- nrow( lmdmat );
-    N <- 1
+    N <- 1   # number of sampling images
 
     obsmat <- NBinom2D( N, lmdmat, Ksamples=K ) 
-    obsmat <- Matrix( obsmat, nrow=Lx*Ly, ncol=N )
+    obsmat <- matrix( obsmat, nrow=Lx*Ly, ncol=N )
     obsmean <- rowMeans( obsmat )
+    lmd0 = mean( obsmat )
 
     rhomat <- lmdmat/K
     xtrue <- logit( rhomat )
@@ -46,12 +48,12 @@ Trial <- function( filename, lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
     zz <- as.vector(2 * obsmean - K)
 
     xi <- rep( 0, M )
-    alpha0 <- 1.0
+    alpha0 <- 1e-3
     h <- 1.0e-5        # treating as fixed value
 
-    rhoinit <- mean(obsmean)/K
-    muold <- rep( logit(rhoinit), M )
-    muold0 <- rep( logit(rhoinit), M )
+    rho0 <- lmd0/K
+    muold <- rep( logit(rho0), M )
+    muold0 <- rep( logit(rho0), M )
     
 #    browser()
     
@@ -70,7 +72,7 @@ Trial <- function( filename, lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
         beta <- K * Coef1( xi )
         y <- zz / beta
 
-        lbp <- LoopyBP2D( Lx, Ly, alpha, beta, h, y, ITmax=1000 )
+        lbp <- LoopyBP2D( Lx, Ly, alpha, beta, h, y, x0=rho0, ITmax=1000 )
 
         mu <- as.numeric( lbp$mu )
         Sinv <- as.numeric( lbp$sigma2 )
@@ -165,9 +167,7 @@ for( rng in rngs ){
 
     NTrial <- 1
     for(nt in 1:NTrial) {
-        fname <- sprintf( "Pois2D13_%02d_%02d_%02d.RData", minoff, rng, nt )
+        fname <- sprintf( "Pois2DLBP3_%02d_%02d_%02d.RData", minoff, rng, nt )
         Trial( file=fname, lmdmat, K=1000, minoff=minoff, rng=rng, ITmax=1000 )
     }
 }
-
-
