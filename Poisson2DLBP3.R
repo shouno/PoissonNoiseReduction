@@ -72,7 +72,7 @@ Trial <- function( filename, lmdmat, K=1000, minoff=2, rng=20, ITmax=100 ){
         beta <- K * Coef1( xi )
         y <- zz / beta
 
-        lbp <- LoopyBP2D( Lx, Ly, alpha, beta, h, y, x0=rho0, ITmax=1000 )
+        lbp <- LoopyBP2D( Lx, Ly, alpha, beta, h, y, x0=logit(rho0), ITmax=1000 )
 
         mu <- as.numeric( lbp$mu )
         Sinv <- as.numeric( lbp$sigma2 )
