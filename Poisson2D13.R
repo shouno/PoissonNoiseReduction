@@ -192,7 +192,7 @@ rngs <- c( 20, 40, 80, 160 )
 minoff <- 2
 
 for( rng in rngs ){
-    lmdmat <- minoff + rng / (maximg-minimg) * (img-minimg)
+    lmdmat <- minoff + (rng-minoff) / (maximg-minimg) * (img-minimg)
 
     NTrial <- 1
     for(nt in 1:NTrial) {
